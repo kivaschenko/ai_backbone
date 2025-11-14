@@ -83,7 +83,12 @@ python scripts/init_db.py
 python -m core.api.main
 ```
 
-The API will be available at `http://localhost:8000`
+The API will be available at `http://localhost:8000/docs`
+
+## API Documentation
+
+The Swagger API documentation must look like the screenshot:
+![Swagger API](screenshots/swagger_api.png)
 
 ## Usage Examples
 

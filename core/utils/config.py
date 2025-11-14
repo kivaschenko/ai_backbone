@@ -6,6 +6,10 @@ import os
 from typing import Dict, Any
 from pathlib import Path
 import json
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 class Config:
