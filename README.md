@@ -1,262 +1,218 @@
-# AI Backbone - Intelligent Business Automation System
+# AI Backbone
 
-A comprehensive AI agent system for automating business operations across CRM, finance, marketing, and operations platforms.
+AI Backbone is a Python system for automating business operations across CRM, finance, marketing, and operations platforms. It combines data connectors, a normalized PostgreSQL data model, scheduled workflows, AI agents, and REST API endpoints.
 
 ## Architecture
 
-The system is built on five distinct layers:
+The project is organized into five layers:
 
-### 1. Data Connectors Layer (`core/connectors/`)
-Python services for pulling/pushing data from external platforms:
-- **Zoho CRM** - Deals, contacts, activities
-- **QuickBooks** - Invoices, payments, customers
-- **Google Ads & Meta Ads** - Campaign performance
-- **Time Doctor** - Time tracking and project data
-- **Google Sheets** - Data import/export
+1. **Data connectors** in `core/connectors/` — Pull and push data from Zoho CRM, QuickBooks, Google Ads, Meta Ads, Time Doctor, and Google Sheets.
+2. **Unified data layer** in `core/database/` — Store normalized CRM, finance, marketing, and operations records in PostgreSQL.
+3. **Orchestration** in `core/orchestration/` — Schedule jobs, execute asynchronous tasks with retries, and run dependent workflows.
+4. **AI agents** in `core/agents/` — Generate insights for sales, finance, marketing, and operations data.
+5. **API and dashboard** in `core/api/` — Expose agent analysis, data synchronization, scheduling, health, and dashboard endpoints.
 
-### 2. Unified Data Layer (`core/database/`)
-PostgreSQL database with normalized schemas:
-- `crm_*` tables - CRM data
-- `finance_*` tables - Financial data
-- `marketing_*` tables - Advertising data
-- `operations_*` tables - Time tracking data
+## Features
 
-### 3. Event & Orchestration Layer (`core/orchestration/`)
-Background task management:
-- **Scheduler** - Cron-based and interval-based job scheduling
-- **Task Queue** - Asynchronous task execution with retry logic
-- **Workflow** - Multi-step process orchestration with dependencies
+- Multi-platform integrations for CRM, accounting, advertising, and time tracking
+- Unified schemas for cross-platform business analysis
+- LLM-powered agents for contextual insights
+- Cron and interval scheduling with asynchronous task queues
+- Multi-step workflows with dependency handling
+- Real-time and cohort dashboard endpoints
+- Extensible connectors and agents
 
-### 4. AI Agents Layer (`core/agents/`)
-Specialized agents with LLM capabilities:
-- **CRM Agent** - Sales pipeline analysis and deal insights
-- **Finance Agent** - Cash flow analysis and AR management
-- **Marketing Agent** - Campaign performance and ROAS optimization
-- **Operations Agent** - Time tracking and project profitability
+## Repository Structure
 
-### 5. Dashboard & API Layer (`core/api/`)
-RESTful API endpoints:
-- Agent analysis endpoints
-- Data sync triggers
-- Scheduler management
-- Real-time cohort dashboards
+```text
+ai_backbone/
+├── core/
+│   ├── agents/          # CRM, finance, marketing, and operations agents
+│   ├── api/             # FastAPI application and routes
+│   ├── connectors/      # External platform integrations
+│   ├── database/        # PostgreSQL models and connections
+│   ├── orchestration/   # Scheduler, task queue, and workflows
+│   └── utils/           # Shared utilities
+├── screenshots/         # Documentation assets
+├── scripts/             # Database and maintenance scripts
+├── requirements.txt     # Python dependencies
+├── .env.example         # Environment variable template
+└── README.md
+```
 
-## Quick Start
+## Prerequisites
 
-### Prerequisites
-- Python 3.9+
-- PostgreSQL 13+
-- API credentials for integrated platforms
+- Python 3.9 or newer
+- PostgreSQL 13 or newer
+- API credentials for the integrations you intend to use
+- An LLM API key if you enable agent analysis
 
-### Installation
+## Installation
 
-1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/kivaschenko/ai_backbone.git
 cd ai_backbone
-```
 
-2. Create virtual environment:
-```bash
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
+source venv/bin/activate
+# On Windows: venv\Scripts\activate
 
-3. Install dependencies:
-```bash
 pip install -r requirements.txt
-```
-
-4. Configure environment:
-```bash
 cp .env.example .env
-# Edit .env with your credentials
 ```
 
-5. Initialize database:
+Update `.env` with your database, LLM, and platform credentials. Configuration keys are documented in `.env.example`.
+
+Initialize the database:
+
 ```bash
 python scripts/init_db.py
 ```
 
-6. Start the API server:
+Start the API server:
+
 ```bash
 python -m core.api.main
 ```
 
-The API will be available at `http://localhost:8000/docs`
+The interactive API documentation is available at `http://localhost:8000/docs`.
 
-## API Documentation
-
-The Swagger API documentation must look like the screenshot:
 ![Swagger API](screenshots/swagger_api.png)
 
-## Usage Examples
+## Usage
 
-### Analyzing CRM Data
+### Analyze CRM data
 
 ```python
 from core.agents.crm_agent import CRMAgent
 
-# Initialize agent
 agent = CRMAgent(
     agent_id="crm_1",
     llm_config={
         "model": "gpt-4",
-        "api_key": "your-api-key"
-    }
+        "api_key": "your-api-key",
+    },
 )
 
-# Analyze deals
 result = agent.process({
-    "deals": [...],  # Your deal data
-    "query": "What are the top at-risk deals this month?"
+    "deals": [...],
+    "query": "What are the top at-risk deals this month?",
 })
 
 print(result["insights"])
 ```
 
-### Scheduling Data Syncs
+### Schedule data synchronization
 
 ```python
 from core.orchestration.scheduler import scheduler
 
-# Schedule Zoho CRM sync every hour
 scheduler.add_interval_job(
     job_id="zoho_sync",
     func=sync_zoho_crm,
-    hours=1
+    hours=1,
 )
 
-# Schedule daily financial report at 9 AM
 scheduler.add_cron_job(
     job_id="daily_report",
     func=generate_financial_report,
     hour="9",
-    minute="0"
+    minute="0",
 )
 
 scheduler.start()
 ```
 
-### Creating Workflows
+### Create a workflow
 
 ```python
 from core.orchestration.workflow import Workflow
 
-# Create multi-step workflow
-workflow = Workflow(workflow_id="monthly_analysis", name="Monthly Business Analysis")
+workflow = Workflow(
+    workflow_id="monthly_analysis",
+    name="Monthly Business Analysis",
+)
 
 workflow.add_step("fetch_crm", "Fetch CRM Data", fetch_crm_data)
 workflow.add_step("fetch_finance", "Fetch Finance Data", fetch_finance_data)
-workflow.add_step("analyze", "AI Analysis", run_analysis, depends_on=["fetch_crm", "fetch_finance"])
-workflow.add_step("report", "Generate Report", create_report, depends_on=["analyze"])
+workflow.add_step(
+    "analyze",
+    "AI Analysis",
+    run_analysis,
+    depends_on=["fetch_crm", "fetch_finance"],
+)
+workflow.add_step(
+    "report",
+    "Generate Report",
+    create_report,
+    depends_on=["analyze"],
+)
 
-# Execute workflow
 workflow.execute()
 ```
 
 ## API Endpoints
 
-### Health Check
-```bash
+### Health
+
+```text
 GET /health
 ```
 
-### Agent Analysis
-```bash
+### Agent analysis
+
+```text
 POST /agents/crm/analyze
 POST /agents/finance/analyze
 POST /agents/marketing/analyze
 POST /agents/operations/analyze
 ```
 
-### Data Sync
-```bash
+### Data synchronization
+
+```text
 POST /sync/zoho-crm
 POST /sync/quickbooks
 POST /sync/ads
 POST /sync/time-doctor
 ```
 
-### Dashboard
-```bash
+### Dashboards
+
+```text
 GET /dashboard/cohort/overview
 GET /dashboard/metrics/realtime
 ```
 
-## Configuration
-
-Configuration is managed through environment variables or a config file. See `.env.example` for all available options.
-
-Key configurations:
-- Database connection
-- LLM provider and API keys
-- Platform API credentials
-- Scheduler settings
-- Logging preferences
-
 ## Development
 
-### Project Structure
-```
-ai_backbone/
-├── core/
-│   ├── connectors/       # Data integration layer
-│   ├── database/         # Database models and connection
-│   ├── orchestration/    # Scheduling and task management
-│   ├── agents/          # AI agents
-│   ├── api/             # REST API endpoints
-│   └── utils/           # Utilities and helpers
-├── tests/               # Test suite
-├── scripts/             # Utility scripts
-├── logs/                # Application logs
-├── requirements.txt     # Python dependencies
-└── .env.example         # Environment template
-```
+### Run tests
 
-### Running Tests
 ```bash
 pytest tests/
 ```
 
-### Code Quality
+### Format and lint
+
 ```bash
-# Format code
 black core/
-
-# Lint code
 flake8 core/
-
-# Type checking
 mypy core/
 ```
 
-## Key Features
-
-✅ **Multi-Platform Integration** - Connect to CRM, accounting, ads, and time tracking systems
-✅ **Unified Data Model** - Normalized schemas for cross-platform analysis
-✅ **AI-Powered Insights** - LLM-based agents for intelligent analysis
-✅ **Automated Workflows** - Schedule and orchestrate complex business processes
-✅ **Real-Time Dashboards** - Cohort analysis across all business metrics
-✅ **Extensible Architecture** - Easy to add new connectors and agents
-
 ## Roadmap
 
-- [ ] Add more platform connectors (HubSpot, Stripe, etc.)
+- [ ] Add connectors for HubSpot and Stripe
 - [ ] Implement real-time webhooks
-- [ ] Build interactive dashboard UI
-- [ ] Add agent memory persistence
+- [ ] Build an interactive dashboard UI
+- [ ] Add persistent agent memory
 - [ ] Implement multi-agent collaboration
-- [ ] Add ML models for predictive analytics
+- [ ] Add predictive analytics models
 
 ## Contributing
 
-Contributions are welcome! Please read our contributing guidelines before submitting PRs.
+Contributions are welcome. Please open an issue to discuss significant changes before submitting a pull request. Keep changes focused and include tests where appropriate.
 
 ## License
 
-[Your License Here]
-
-## Support
-
-For questions or issues, please open an issue on GitHub or contact [your-email@example.com]
+This project is licensed under the [MIT License](LICENSE).
